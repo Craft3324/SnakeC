@@ -1,0 +1,16 @@
+If:
+  PathMatch: .*\.c
+CompileFlags:
+  Add: [-std=c23, -I../include]
+
+---
+If:
+  PathMatch: src/(screens|platform|game)/.*\.c
+CompileFlags:
+  Add: [-I../../include]
+
+---
+If:
+  PathMatch: .*\.h
+CompileFlags:
+  Add: [-I../include]
