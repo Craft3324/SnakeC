@@ -1,6 +1,6 @@
 ---@diagnostic disable: undefined-global
 
-set_project("snake_game")
+set_project("SnakeC")
 set_version("1.0.0")
 
 add_rules("mode.debug", "mode.release")
@@ -8,7 +8,7 @@ add_rules("mode.debug", "mode.release")
 set_languages("c23")
 set_warnings("all", "error")
 
-target("snake_game")
+target("SnakeC")
 set_kind("binary")
 
 add_files("src/*.c")
