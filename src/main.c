@@ -131,7 +131,6 @@ int main(void) {
 
         running = moveSnake();
         drawGame();
-        Sleep(200);
     }
 
     printf("Spelet ar slut! Slutpoang: %d\n", score);
