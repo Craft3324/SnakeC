@@ -5,7 +5,7 @@
 
 static Screen credits_run(void) {
     static const char authors[] = "@Craft3324 (Nobel)\n"
-                                  "@xxxx      (Leo)\n"
+                                  "@LagLeo    (Leo)\n"
                                   "@Andrija97 (Andrija)\n"
                                   "@iLavion   (Edvin)\n";
     bool running = true;
