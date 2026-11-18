@@ -5,7 +5,14 @@ CFLAGS2=-O3 -Wall -Werror
 CPPFLAGS=-Iinclude
 DEPS =
 SRC_DIR = src
-SRC = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/screens/*.c) $(wildcard $(SRC_DIR)/game/*.c)
+
+ifeq ($(OS),Windows_NT)
+PLATFORM_SRC = $(SRC_DIR)/platform/windows.c
+else
+PLATFORM_SRC = $(SRC_DIR)/platform/posix.c
+endif
+
+SRC = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/screens/*.c) $(wildcard $(SRC_DIR)/game/*.c) $(PLATFORM_SRC)
 OBJ_CODE =
 OBJ = $(OBJ_CODE) $(SRC:.c=.o)
 

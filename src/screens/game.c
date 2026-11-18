@@ -1,18 +1,15 @@
 #include <game.h>
 #include <input.h>
+#include <platform.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
-static bool tick_due(struct timespec *last_tick) {
-    struct timespec now;
-    timespec_get(&now, TIME_UTC);
+static bool tick_due(uint32_t *last_tick) {
+    uint32_t now = platform_ticks_ms();
 
-    int64_t elapsed_ms = (now.tv_sec - last_tick->tv_sec) * 1000 +
-                         (now.tv_nsec - last_tick->tv_nsec) / 1000000;
-
-    if (elapsed_ms < SNAKE_TICK_MS) {
+    if (now - *last_tick < SNAKE_TICK_MS) {
         return false;
     }
 
@@ -59,8 +56,7 @@ static Screen game_run(void) {
     game_init(&world);
     fruit_spawn(&world);
 
-    struct timespec last_tick;
-    timespec_get(&last_tick, TIME_UTC);
+    uint32_t last_tick = platform_ticks_ms();
 
     game_draw(&world, points, started_at);
 
