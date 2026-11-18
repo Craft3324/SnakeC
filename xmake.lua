@@ -11,7 +11,7 @@ set_warnings("all", "error")
 target("SnakeC")
 set_kind("binary")
 
-add_files("src/*.c")
+add_files("src/*.c", "src/screens/*.c", "src/game/*.c")
 add_includedirs("include")
 
 if is_plat("windows") then
