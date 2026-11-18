@@ -16,7 +16,7 @@
 #define GAME_GOAL_POINTS                                                       \
     ((GAME_WIDTH - 2) * (GAME_HEIGHT - 2) - SNAKE_START_LENGTH)
 
-#define SNAKE_TICK_MS 150
+#define SNAKE_TICK_MS 200
 #define SNAKE_HEAD "@"
 #define SNAKE_BODY "o"
 
