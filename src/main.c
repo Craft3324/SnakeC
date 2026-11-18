@@ -66,7 +66,7 @@ void drawGame(void) {
     }
 
     printf("Points: %d\n", score);
-    printf("Styr med W, S, A, D. Avsluta med Q.\n");
+    printf("Styr med W, A, S, D. Avsluta med Q.\n");
 }
 
 int readInput(void) {
@@ -133,6 +133,6 @@ int main(void) {
         drawGame();
     }
 
-    printf("Spelet ar slut! Slutpoang: %d\n", score);
+    printf("Spelet är slut! Slutpoäng: %d\n", score);
     return 0;
 }
