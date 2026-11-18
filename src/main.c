@@ -1,10 +1,12 @@
 #include <input.h>
+#include <platform.h>
 #include <screen.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 int main(void) {
     input_init();
+    platform_cursor_hide();
 
     Screen screen = SCREEN_MENU;
     while (screen != SCREEN_DONE) {
@@ -27,5 +29,6 @@ int main(void) {
     }
 
     printf("\033[2J\033[H");
+    platform_cursor_show();
     input_shutdown();
 }

@@ -2,6 +2,7 @@
 
 #include <input.h>
 #include <platform.h>
+#include <stdio.h>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
@@ -24,6 +25,16 @@ void input_init(void) {
 }
 
 void input_shutdown(void) { tcsetattr(STDIN_FILENO, TCSANOW, &original); }
+
+void platform_cursor_hide(void) {
+    fputs("\033[?25l", stdout);
+    fflush(stdout);
+}
+
+void platform_cursor_show(void) {
+    fputs("\033[?25h", stdout);
+    fflush(stdout);
+}
 
 Input input_poll(void) {
     char key;

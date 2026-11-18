@@ -12,6 +12,8 @@ static HANDLE console_input = INVALID_HANDLE_VALUE;
 static HANDLE console_output = INVALID_HANDLE_VALUE;
 static DWORD original_output_mode;
 static bool output_mode_saved = false;
+static CONSOLE_CURSOR_INFO original_cursor;
+static bool cursor_saved = false;
 
 static HANDLE input_handle(void) {
     if (console_input == INVALID_HANDLE_VALUE || console_input == NULL) {
@@ -49,6 +51,36 @@ void input_shutdown(void) {
 }
 
 uint32_t platform_ticks_ms(void) { return (uint32_t)GetTickCount(); }
+
+void platform_cursor_hide(void) {
+    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+
+    if (output == INVALID_HANDLE_VALUE || output == NULL) {
+        return;
+    }
+
+    if (!GetConsoleCursorInfo(output, &info)) {
+        return;
+    }
+
+    original_cursor = info;
+    cursor_saved = true;
+
+    info.bVisible = FALSE;
+    SetConsoleCursorInfo(output, &info);
+}
+
+void platform_cursor_show(void) {
+    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    if (!cursor_saved || output == INVALID_HANDLE_VALUE || output == NULL) {
+        return;
+    }
+
+    SetConsoleCursorInfo(output, &original_cursor);
+    cursor_saved = false;
+}
 
 static bool read_key(KEY_EVENT_RECORD *key) {
     HANDLE handle = input_handle();
