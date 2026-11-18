@@ -1,150 +1,263 @@
-
 #include <stdio.h>
-#include <time.h>
-#include <math.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <conio.h>
-
 #include <time.h>
-#include <errno.h>    
+#include <conio.h>
+#include <windows.h>
 
-void hideCursor(){
-    printf("\e[?25l");
-}
+#define WIDTH 20
+#define HEIGHT 20
+#define MAX_LENGTH (WIDTH * HEIGHT)
 
-/* msleep(): Sleep for the requested number of milliseconds. */
-int msleep(long msec)
-{
-    struct timespec ts;
-    int res;
+typedef struct {
+    int x;
+    int y;
+} Position;
 
-    if (msec < 0)
-    {
-        errno = EINVAL;
-        return -1;
-    }
+typedef struct {
+    Position body[MAX_LENGTH];
+    int length;
+    char direction;
+} Snake;
 
-    ts.tv_sec = msec / 1000;
-    ts.tv_nsec = (msec % 1000) * 1000000;
+typedef struct {
+    int x;
+    int y;
+} Food;
 
-    do {
-        res = nanosleep(&ts, &ts);
-    } while (res && errno == EINTR);
-
-    return res;
-}
-
-#define ROWS 10 // 2-9
-#define COLS 30 // 2-29
-#define WALL '#'
-
-typedef struct{
-    int X;
-    int Y;
-}Snake;
-
-
-#define clrscr() printf("\e[1;1H\e[2J")
-void gotoxy(int x,int y){
-    printf("%c[%d;%df",0x1B,y,x);
-}
-
-
-
-void drawBoundaries(){
-    for(int row = 0; row < ROWS+2;row++){
-        for(int col = 0; col < COLS+2; col++){
-            if(row == 0 || row == ROWS+1 || col == 0 || col == COLS+1){
-                printf("%c",WALL);         
-            }
-            else{
-                printf(" ");
-            }
-        }
-        printf("\n");
-        
-    }
-}
-
-
-void drawSnake(Snake snake){
-    gotoxy(snake.X,snake.Y);
-    printf("@");
-}
-
-void clearSnake(Snake snake){
-    gotoxy(snake.X,snake.Y);
-    printf(" ");
-}
-
-
-typedef enum {
-    KeyboardDir_Left,    
-    KeyboardDir_Right,
-    KeyboardDir_Up,
-    KeyboardDir_Down,
-}KeyboardDir;
-
-
-int kbhit2()
-{
+int kbhitInGame(void) {
     return _kbhit();
 }
 
-int getNextKeyboardAction(){
-    if(kbhit2()){
-        //gotoxy(0,ROWS+3);
-        //printf("Ange vad den ska göra:");
-        char ch = getch();
-        //printf("%d",ch);
-        return ch;
+char getKey(void) {
+    return getch();
+}
+
+void clearScreen(void) {
+    system("cls");
+}
+
+void hideCursor(void) {
+    HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cursor;
+    cursor.dwSize = 100;
+    cursor.bVisible = FALSE;
+    SetConsoleCursorInfo(console, &cursor);
+}
+
+void moveCursor(int x, int y) {
+    HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD position = {(SHORT)x, (SHORT)y};
+    SetConsoleCursorPosition(console, position);
+}
+
+int positionIsOnSnake(Snake *snake, int x, int y) {
+    for (int i = 0; i < snake->length; i++) {
+        if (snake->body[i].x == x && snake->body[i].y == y) {
+            return 1;
+        }
     }
     return 0;
 }
 
-
-
-void moveSnake(Snake *snake,KeyboardDir direction){
-    if(direction == KeyboardDir_Up){
-        if(snake->Y == 2) snake->Y = ROWS+1;
-        else snake->Y--;
-    }
-    if(direction == KeyboardDir_Down){
-        if(snake->Y == ROWS+1) snake->Y = 2;
-        else snake->Y++;
-    }
-    if(direction == KeyboardDir_Left){
-        if(snake->X == 2) snake->X = COLS+1;
-        else snake->X--;
-    }
-    if(direction == KeyboardDir_Right){
-        if(snake->X == COLS+1) snake->X = 2;
-        else snake->X++;
-    }
-
-
+void placeFood(Snake *snake, Food *food) {
+    do {
+        food->x = 1 + rand() % WIDTH;
+        food->y = 1 + rand() % HEIGHT;
+    } while (positionIsOnSnake(snake, food->x, food->y));
 }
 
-int main(){
-    Snake snake;
-    snake.X = 5; 
-    snake.Y = 5;
-    clrscr();
-    hideCursor();
-    drawBoundaries(1);
-    while(1){
-        //clrscr();
-        //drawBoundaries(1);
-        clearSnake(snake);
-        gotoxy(0,0);
-        char ch = getNextKeyboardAction();
-        if(ch == 'u') moveSnake(&snake,KeyboardDir_Up);
-        else if(ch == 'd') moveSnake(&snake,KeyboardDir_Down);
-        else if(ch == 'l') moveSnake(&snake,KeyboardDir_Left);
-        else if(ch == 'r') moveSnake(&snake,KeyboardDir_Right);
-        drawSnake(snake);
-        msleep(250);
+void changeDirection(Snake *snake, char key) {
+    if (key == 'w' && snake->direction != 's') {
+        snake->direction = 'w';
     }
-    return 1;
+    if (key == 's' && snake->direction != 'w') {
+        snake->direction = 's';
+    }
+    if (key == 'a' && snake->direction != 'd') {
+        snake->direction = 'a';
+    }
+    if (key == 'd' && snake->direction != 'a') {
+        snake->direction = 'd';
+    }
+}
+
+int snakeHitsWall(Snake *snake) {
+    int headX = snake->body[0].x;
+    int headY = snake->body[0].y;
+
+    return headX < 1 || headX > WIDTH ||
+           headY < 1 || headY > HEIGHT;
+}
+
+int snakeHitsItself(Snake *snake) {
+    int headX = snake->body[0].x;
+    int headY = snake->body[0].y;
+
+    for (int i = 1; i < snake->length; i++) {
+        if (snake->body[i].x == headX &&
+            snake->body[i].y == headY) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void getNextPosition(Snake *snake, int *nextX, int *nextY) {
+    *nextX = snake->body[0].x;
+    *nextY = snake->body[0].y;
+
+    if (snake->direction == 'w') {
+        (*nextY)--;
+    }
+    if (snake->direction == 's') {
+        (*nextY)++;
+    }
+    if (snake->direction == 'a') {
+        (*nextX)--;
+    }
+    if (snake->direction == 'd') {
+        (*nextX)++;
+    }
+}
+
+void moveSnake(Snake *snake, int grow) {
+    Position oldTail = snake->body[snake->length - 1];
+
+    for (int i = snake->length - 1; i > 0; i--) {
+        snake->body[i] = snake->body[i - 1];
+    }
+
+    if (snake->direction == 'w') {
+        snake->body[0].y--;
+    }
+    if (snake->direction == 's') {
+        snake->body[0].y++;
+    }
+    if (snake->direction == 'a') {
+        snake->body[0].x--;
+    }
+    if (snake->direction == 'd') {
+        snake->body[0].x++;
+    }
+
+    if (grow == 1) {
+        snake->body[snake->length] = oldTail;
+        snake->length++;
+    }
+}
+
+void drawBoard(void) {
+    for (int y = 0; y <= HEIGHT + 1; y++) {
+        for (int x = 0; x <= WIDTH + 1; x++) {
+            moveCursor(x * 2, y + 2);
+            if (y == 0 || y == HEIGHT + 1 ||
+                x == 0 || x == WIDTH + 1) {
+                printf("##");
+            } else {
+                printf(" ");
+            }
+        }
+    }
+}
+
+void drawSnake(Snake *snake) {
+    for (int i = 0; i < snake->length; i++) {
+        moveCursor(snake->body[i].x * 2, snake->body[i].y + 2);
+        printf("%c ", i == 0 ? 'O' : 'o');
+        fflush(stdout);
+    }
+}
+
+void clearSnake(Snake *snake) {
+    for (int i = 0; i < snake->length; i++) {
+        moveCursor(snake->body[i].x * 2, snake->body[i].y + 2);
+        printf("  ");
+        fflush(stdout);
+    }
+}
+
+void drawFood(Food *food) {
+    moveCursor(food->x * 2, food->y + 2);
+    printf("* ");
+    fflush(stdout);
+}
+
+void drawScore(int score) {
+    moveCursor(0, 0);
+    printf("################  SCORE: %d  ################", score);
+    fflush(stdout);
+}
+
+int main(void) {
+    srand((unsigned int)time(NULL));
+    clearScreen();
+    hideCursor();
+
+    Snake snake;
+    snake.length = 3;
+    snake.direction = 'd';
+
+    snake.body[0].x = 6;
+    snake.body[0].y = 10;
+    snake.body[1].x = 5;
+    snake.body[1].y = 10;
+    snake.body[2].x = 4;
+    snake.body[2].y = 10;
+
+    Food food;
+    placeFood(&snake, &food);
+
+    int score = 0;
+
+    clearScreen();
+    drawScore(score);
+    drawBoard();
+    drawFood(&food);
+    drawSnake(&snake);
+
+    while (1) {
+        if (kbhitInGame()) {
+            char key = getKey();
+            changeDirection(&snake, key);
+        }
+
+        int nextX;
+        int nextY;
+        getNextPosition(&snake, &nextX, &nextY);
+
+        if (nextX < 1 || nextX > WIDTH ||
+            nextY < 1 || nextY > HEIGHT) {
+            printf("\nGame over\n");
+            break;
+        }
+
+        int ateFood = nextX == food.x && nextY == food.y;
+        clearSnake(&snake);
+        moveSnake(&snake, ateFood);
+
+        if (snakeHitsWall(&snake)) {
+            drawSnake(&snake);
+            printf("\nGame over\n");
+            break;
+        }
+
+        if (snakeHitsItself(&snake)) {
+            drawSnake(&snake);
+            printf("\nGame over\n");
+            break;
+        }
+
+        if (ateFood) {
+            score++;
+            placeFood(&snake, &food);
+        }
+
+        drawSnake(&snake);
+        drawFood(&food);
+        drawScore(score);
+        Sleep(250);
+    }
+
+    printf("Final score: %d\n", score);
+    return 0;
 }
