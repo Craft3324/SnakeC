@@ -45,8 +45,8 @@ void placeFood(void) {
 }
 
 void drawGame(void) {
-    system("cls");
-
+HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+COORD topLeft = {0, 0};SetConsoleCursorPosition(console, topLeft);
     for (int y = 0; y < ROWS + 2; y++) {
         for (int x = 0; x < COLS + 2; x++) {
             if (x == 0 || x == COLS + 1 || y == 0 || y == ROWS + 1) {
@@ -68,7 +68,6 @@ void drawGame(void) {
     printf("Points: %d\n", score);
     printf("Styr med W, A, S, D. Avsluta med Q.\n");
 }
-
 int readInput(void) {
     if (!_kbhit()) return 1;
 
@@ -116,7 +115,6 @@ int moveSnake(void) {
 
     return 1;
 }
-
 int main(void) {
     srand((unsigned int)time(NULL));
 
@@ -124,6 +122,8 @@ int main(void) {
     snake[1].x = 4; snake[1].y = 5;
     snake[2].x = 3; snake[2].y = 5;
     placeFood();
+    
+    system("cls");
 
     int running = 1;
     while (running) {
@@ -131,8 +131,9 @@ int main(void) {
 
         running = moveSnake();
         drawGame();
+        Sleep(250);
     }
 
-    printf("Spelet är slut! Slutpoäng: %d\n", score);
+    printf("Spelet ar slut! Slutpoang: %d\n", score);
     return 0;
 }
