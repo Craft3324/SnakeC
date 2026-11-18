@@ -1,0 +1,2 @@
+# SnakeC
+Hackathon Snake, C
