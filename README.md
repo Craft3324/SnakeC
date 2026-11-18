@@ -1,5 +1,6 @@
 # SnakeC
 Hackathon Snake, C
+
 -Ändra till stort O, så kan kroppen senare vara lilla o
 
 -Slumpa ut mat. Obs får inte vara på ormen eller utanför spelplanen!
